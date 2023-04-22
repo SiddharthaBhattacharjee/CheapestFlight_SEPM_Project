@@ -1,0 +1,1 @@
+export const VoteContractAddress = '0x68eEf91c4B325a329Bb53c098A1b51346207551f'
