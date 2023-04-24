@@ -13,6 +13,8 @@ import Select from '@mui/material/Select';
 import data from './utils/data';
 import VoteAbi from './utils/Contract.json';
 import { VoteContractAddress } from './config.js';
+import Tickets from './components/Tickets';
+import Overlay from './components/Overlay';
 
 
 function App() {
@@ -25,6 +27,7 @@ function App() {
   const [resPath, setResPath] = useState([]);
   const [resPrice, setResPrice] = useState('');
   const [resDate, setResDate] = useState([]);
+  const [isOverlay,setIsOverlay] = useState(false);
 
   const [from, setFrom] = React.useState('');
   const [to, setTo] = React.useState('');
@@ -148,7 +151,7 @@ function App() {
   }
 
   const bookTicket = async () => {
-    if(!Name || !Age || !from || !to || !date){
+    if (!Name || !Age || !from || !to || !date) {
       alert('Please fill all the fields');
       return;
     }
@@ -163,14 +166,23 @@ function App() {
         const VoteContract = new ethers.Contract(VoteContractAddress, VoteAbi.abi, signer);
         console.log('VoteContract : ', VoteContract);
         //calling the smart contract
+        setIsOverlay(true);
         let strdate = date.toString();
 
-        VoteContract.addTicket(Name,Age,from,to,strdate).then(
+        VoteContract.addTicket(Name, Age, from, to, strdate).then(
           response => {
             console.log('toggleVotingEnabled : ', response);
+            setTimeout(() => {
+              setIsOverlay(false);
+              window.location.reload();
+            }, 20000);
           }
         ).catch(err => {
           console.log(err);
+          setTimeout(() => {
+            setIsOverlay(false);
+            window.location.reload();
+          }, 20000);
         });
 
       }
@@ -182,9 +194,32 @@ function App() {
     }
   }
 
+  const fetchData = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        //setting up provider
+        const provider = new Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        console.log('signer : ', signer);
+        const VoteContract = new ethers.Contract(VoteContractAddress, VoteAbi.abi, signer);
+        console.log('VoteContract : ', VoteContract);
+        //calling the smart contract
+        let allData = await VoteContract.getTickets();
+        setResDate(allData);
+      }
+      else {
+        console.log('Ethereum object not found');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     connectWallet();
-  }, [connectWallet]);
+    fetchData();
+  }, [connectWallet, fetchData]);
 
   const Register = async () => {
     window.open('https://metamask.io', '_blank');
@@ -192,6 +227,9 @@ function App() {
 
   return (
     <div>
+      {isOverlay?(
+        <Overlay/>
+      ):(<></>)}
       {currentAccount === '' ? (
         <div className="loading" style={{ width: "100%", height: "100vh", display: 'flex', alignItems: "center", justifyContent: "space-evenly", flexDirection: "column" }}>
           <div style={{ display: 'flex', alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
@@ -230,6 +268,7 @@ function App() {
             <h1
               style={{
                 color: 'white',
+                marginTop: '20vh',
               }}
             >Search Flight</h1>
             <div className="Booker">
@@ -387,13 +426,28 @@ function App() {
                 </div>
 
               ) : null}
-                </div>
+            </div>
+            <h1 style={{
+              color: 'white',
+              marginTop: '6vh',
+            }}>Your Tickets</h1>
+            <div className="TicketList">
+              {resDate.map(arr =>
+                <Tickets
+                  name={arr[0]}
+                  age={arr[1]}
+                  from={arr[2]}
+                  to={arr[3]}
+                  date={arr[4]}
+                />)
+              }
+            </div>
           </div>
-          </>
+        </>
       )}
-        </div>
-      );
+    </div>
+  );
 }
 
-      export default App;
+export default App;
 

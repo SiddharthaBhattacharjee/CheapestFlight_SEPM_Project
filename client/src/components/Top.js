@@ -1,4 +1,5 @@
 import metamaskimg from '../images/metamask.png';
+import logoFc from '../images/logoFc.png';
 
 const Top = (props) => {
     let uid = props.uid;
@@ -18,7 +19,8 @@ const Top = (props) => {
             
         }}>
             <div style={{fontWeight:"bolder",
-        fontSize:"30px"}}>
+        fontSize:"30px", display:'flex',alignItems:'center'}}>
+            <img src={logoFc} alt="logoFc" style={{width:"50px",height:"50px"}}/>
                 FlightChain
             </div>
             <div style={{width:"28.5%"}}>
